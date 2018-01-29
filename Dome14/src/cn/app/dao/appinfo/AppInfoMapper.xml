@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0 //EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.app.dao.appinfo.AppInfoMapper">
+	<!-- 根据分类的父节点返回分类的对象 -->
+	<select id="getAppInfo" resultMap="appList">
+		SELECT
+		info.id,softwareName,APKName,softwareSize,info.flatformId,dic.valueName,
+		(SELECT valueName FROM data_dictionary WHERE typeCode = 'APP_STATUS'
+		AND valueId = `status`) AS statsName,
+		info.status,categoryName,
+		(SELECT
+		categoryName FROM app_category WHERE id = info.categoryLevel2)
+		AS
+		cateGoryName2,
+		(SELECT categoryName FROM app_category WHERE id =
+		info.categoryLevel3) AS
+		cateGoryName3,
+		downloads,
+		(SELECT versionNo FROM
+		app_version WHERE app_version.id = info.versionId) AS
+		versionNo,
+		info.versionId
+		FROM app_info AS info
+		INNER JOIN data_dictionary AS dic
+		ON dic.typeCode =
+		'APP_FLATFORM' AND dic.valueId = info.flatformId
+		INNER JOIN
+		app_category AS cate ON info.categoryLevel1 = cate.id
+		<trim prefix="where" prefixOverrides="and || or">
+			<if test="softWareName != null   and softWareName != ''">
+				info.softwareName LIKE CONCAT('%',#{softWareName},'%')
+			</if>
+			<if test="status != null   and status != ''">
+				AND info.status = #{status}
+			</if>
+			<if test="flatformId != null   and flatformId != ''">
+				AND info.flatformId = #{flatformId}
+			</if>
+			<if test="cateGoryLevel1 != null   and cateGoryLevel1  != '' ">
+				AND info.categoryLevel1 = #{cateGoryLevel1}
+			</if>
+			<if test="cateGoryLevel2 != null   and cateGoryLevel2 != ''  ">
+				AND info.categoryLevel2 = #{cateGoryLevel2}
+			</if>
+			<if test="cateGoryLevel3 != null   and cateGoryLevel3 != ''  ">
+				AND info.categoryLevel3 = #{cateGoryLevel3}
+			</if>
+		</trim>
+		LIMIT #{currpage},5
+	</select>
+
+	<select id="getAppInfoCount" resultType="int">
+		SELECT COUNT(info.id)
+		FROM app_info AS info
+		INNER JOIN data_dictionary
+		AS dic ON dic.typeCode = 'APP_FLATFORM' AND dic.valueId =
+		info.flatformId
+		INNER JOIN app_category AS cate ON info.categoryLevel1
+		= cate.id
+		<trim prefix="where" prefixOverrides="and || or">
+			<if test="softWareName != null   and softWareName != ''">
+				info.softwareName LIKE CONCAT('%',#{softWareName},'%')
+			</if>
+			<if test="status != null   and status != ''">
+				AND info.status = #{status}
+			</if>
+			<if test="flatformId != null   and flatformId != ''">
+				AND info.flatformId = #{flatformId}
+			</if>
+			<if test="cateGoryLevel1 != null   and cateGoryLevel1  != '' ">
+				AND info.categoryLevel1 = #{cateGoryLevel1}
+			</if>
+			<if test="cateGoryLevel2 != null   and cateGoryLevel2 != ''  ">
+				AND info.categoryLevel2 = #{cateGoryLevel2}
+			</if>
+			<if test="cateGoryLevel3 != null   and cateGoryLevel3 != ''  ">
+				AND info.categoryLevel3 = #{cateGoryLevel3}
+			</if>
+		</trim>
+	</select>
+
+	<select id="getAppInfoByApkName" resultType="cn.app.pojo.AppInfo">
+		SELECT * FROM
+		app_info WHERE APKName = #{apkName}
+	</select>
+
+	<select id="getAppInfoById" resultMap="appListByid">
+		SELECT
+		info.*,dic.valueName
+		FROM app_info AS info
+		INNER JOIN data_dictionary AS
+		dic ON dic.typeCode = "APP_STATUS" AND
+		info.status = dic.valueId
+		WHERE
+		info.id = #{appInfoId}
+	</select>
+
+	<select id="getAppInfoJoinFromById" resultMap="appListByFromid">
+		SELECT
+		info.id,softwareName,APKName,supportROM,interfaceLanguage,appInfo,softwareSize,info.flatformId,dic.valueName,
+		(SELECT valueName FROM data_dictionary WHERE typeCode = 'APP_STATUS'
+		AND valueId = `status`) AS statsName,
+		info.status,categoryName,logoPicPath,logoLocPath,
+		(SELECT
+		categoryName
+		FROM app_category WHERE id = info.categoryLevel2)
+		AS
+		cateGoryName2,
+		(SELECT categoryName FROM app_category WHERE id =
+		info.categoryLevel3)
+		AS
+		cateGoryName3,
+		downloads,
+		(SELECT versionNo FROM
+		app_version WHERE
+		app_version.id = info.versionId) AS
+		versionNo,
+		info.versionId
+		FROM
+		app_info AS info
+		INNER JOIN data_dictionary AS dic
+		ON dic.typeCode =
+		'APP_FLATFORM' AND dic.valueId = info.flatformId
+		INNER JOIN
+		app_category AS cate ON info.categoryLevel1 = cate.id
+		WHERE
+		info.id =
+		#{appInfoId}
+	</select>
+
+
+	<resultMap id="appListByid" type="cn.app.pojo.AppInfo">
+		<id property="id" column="id" />
+		<result property="softwareName" column="softwareName" />
+		<result property="apkName" column="APKName" />
+		<result property="softwareSize" column="softwareSize" />
+		<result property="flatformId" column="flatformId" />
+		<result property="status" column="status" />
+		<result property="statusName" column="valueName" />
+		<result property="categoryLevel1" column="categoryLevel1" />
+		<result property="categoryLevel2" column="categoryLevel2" />
+		<result property="categoryLevel3" column="categoryLevel3" />
+		<result property="appInfo" column="appInfo" />
+		<result property="downloads" column="downloads" />
+		<result property="versionId" column="versionId" />
+		<result property="logoPicPath" column="logoPicPath" />
+		<result property="logoLocPath" column="logoLocPath" />
+	</resultMap>
+
+
+	<resultMap id="appListByFromid" type="cn.app.pojo.AppInfo">
+		<id property="id" column="id" />
+		<result property="softwareName" column="softwareName" />
+		<result property="apkName" column="APKName" />
+		<result property="softwareSize" column="softwareSize" />
+		<result property="supportRom" column="supportROM" />
+		<result property="interfaceLanguage" column="interfaceLanguage" />
+		<result property="flatformId" column="flatformId" />
+		<result property="flatformName" column="valueName" />
+		<result property="status" column="status" />
+		<result property="statusName" column="statsName" />
+		<result property="cateGoryLevelName1" column="categoryName" />
+		<result property="cateGoryLevelName2" column="cateGoryName2" />
+		<result property="cateGoryLevelName3" column="cateGoryName3" />
+		<result property="appInfo" column="appInfo" />
+		<result property="downloads" column="downloads" />
+		<result property="logoPicPath" column="logoPicPath" />
+		<result property="logoLocPath" column="logoLocPath" />
+	</resultMap>
+
+	<resultMap id="appList" type="cn.app.pojo.AppInfo">
+		<id property="id" column="id" />
+		<result property="softwareName" column="softwareName" />
+		<result property="apkName" column="APKName" />
+		<result property="softwareSize" column="softwareSize" />
+		<result property="flatformId" column="flatformId" />
+		<result property="flatformName" column="valueName" />
+		<result property="status" column="status" />
+		<result property="statusName" column="statsName" />
+		<result property="cateGoryLevelName1" column="categoryName" />
+		<result property="cateGoryLevelName2" column="cateGoryName2" />
+		<result property="cateGoryLevelName3" column="cateGoryName3" />
+		<result property="downloads" column="downloads" />
+		<result property="versionId" column="versionId" />
+		<result property="versionNo" column="versionNo" />
+	</resultMap>
+
+
+	<!-- 新增app信息 -->
+	<insert id="addAppInfoSave" parameterType="cn.app.pojo.AppInfo">
+		INSERT INTO app_info
+		(softwareName,APKName,supportROM,interfaceLanguage,softwareSize,updateDate,devId,appInfo,`status`,onSaleDate,offSaleDate,flatformId,categoryLevel3,downloads,createdBy,creationDate,modifyBy,modifyDate,categoryLevel1,categoryLevel2,logoPicPath,logoLocPath,versionId)
+		VALUE
+		(#{softwareName},#{apkName},#{supportRom},#{interfaceLanguage},#{softwareSize},NULL,#{devId},#{appInfo},#{status},NULL,NULL,#{flatformId},#{categoryLevel3},#{downloads},#{createdBy},#{creationDate},NULL,NULL,#{categoryLevel1},#{categoryLevel2},#{logoPicPath},#{logoLocPath},NULL)
+	</insert>
+
+	<!-- 修改app信息 -->
+	<update id="updateAppInfo" parameterType="cn.app.pojo.AppInfo">
+		UPDATE app_info
+		SET
+		softwareName=#{softwareName},APKName=#{apkName},supportROM=#{supportRom},interfaceLanguage=#{interfaceLanguage},
+		softwareSize =
+		#{softwareSize},downloads=#{downloads},flatformId=#{flatformId},
+		appInfo=#{appInfo},categoryLevel3=#{categoryLevel3},categoryLevel2=#{categoryLevel2},
+		categoryLevel1=#{categoryLevel1},logoPicPath=#{logoPicPath},logoLocPath=#{logoLocPath}
+		<if test="status != null   and status == 1">
+			,status = 1
+		</if>
+		WHERE id = #{id}
+	</update>
+	<!-- 清空app的logo图片地址 -->
+	<update id="emptyAppInfoLogoPath">
+		UPDATE app_info
+		SET
+		logoPicPath=NULL,logoLocPath=NULL
+		WHERE id = #{id}
+	</update>
+	<update id="modifyAppInfoVersion">
+		UPDATE app_info SET versionId = #{appVersionId}
+		WHERE
+		id = #{appId}
+	</update>
+
+	
+	<update id="upAppInfo">
+		UPDATE app_info SET
+		<if test="sale == 4">
+			status = 4,onSaleDate = NOW()
+		</if>
+		<if test="sale == 5">
+			status = 5,offSaleDate = NOW()
+		</if>
+		<if test="sale == 2">
+			status = 2
+		</if>
+		<if test="sale == 3">
+			status = 3
+		</if>
+		WHERE id = #{appInfoId}
+	</update>
+
+	<!-- 删除app信息 -->
+	<delete id="deleteAppInfo">
+		DELETE FROM app_info WHERE id=#{appInfoId}
+	</delete>
+</mapper>
