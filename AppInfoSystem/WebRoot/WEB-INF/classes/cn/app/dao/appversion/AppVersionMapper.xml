@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0 //EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.app.dao.appversion.AppVersionMapper">
+	<select id="getAppVersionByAppId" resultMap="VersionMap">
+		SELECT
+		APKName,versionNo,versionSize,valueName,downloadLink,apkFileName,ver.modifyDate
+		FROM app_version AS ver
+		INNER JOIN app_info AS info ON ver.appId =
+		info.id
+		INNER JOIN data_dictionary
+		AS da ON da.typeCode =
+		'PUBLISH_STATUS' AND valueId = ver.publishStatus
+		WHERE info.id =
+		#{appId} ORDER BY ver.id DESC
+	</select>
+
+	<select id="getAppVersionByVersionId" resultType="cn.app.pojo.AppVersion">
+		SELECT
+		*
+		FROM
+		app_version
+		WHERE id =
+		#{versionId}
+	</select>
+
+
+	<resultMap type="cn.app.pojo.AppInfo" id="VersionMap">
+		<result property="apkName" column="APKName" />
+		<result property="versionNo" column="versionNo" />
+		<association property="appVersion" javaType="cn.app.pojo.AppVersion">
+			<result property="versionSize" column="versionSize" />
+			<result property="publishStatusName" column="valueName" />
+			<result property="downloadLink" column="downloadLink" />
+			<result property="apkFileName" column="apkFileName" />
+			<result property="modifyDate" column="modifyDate" />
+		</association>
+	</resultMap>
+
+
+	<insert id="addVersionSave" useGeneratedKeys="true" keyProperty="id"
+		parameterType="cn.app.pojo.AppVersion">
+		INSERT INTO
+		app_version(appId,versionNo,versionInfo,publishStatus,downloadLink,versionSize,createdBy,creationDate,modifyBy,modifyDate,apkLocPath,apkFileName)
+		VALUE
+		(#{appId},#{versionNo},#{versionInfo},3,#{downloadLink},#{versionSize},#{createdBy},#{creationDate},NULL,NULL,#{apkLocPath},#{apkFileName})
+	</insert>
+
+	<update id="updateAppVersion">
+		UPDATE app_version SET
+		versionInfo = #{versionInfo},downloadLink
+		=#{downloadLink},apkLocPath = #{apkLocPath},apkFileName =
+		#{apkFileName},modifyBy = #{modifyBy},modifyDate=#{modifyDate}
+		WHERE id
+		= #{id}
+	</update>
+
+	<update id="emptyAppVersionPath">
+		UPDATE app_version SET
+		downloadLink = NULL,apkLocPath
+		= NULL,apkFileName =NULL
+		WHERE id
+		= #{id}
+	</update>
+
+	<delete id="deleteAddVersion">
+		DELETE  FROM   app_version  WHERE appId = #{appId}  
+	</delete>
+</mapper>
